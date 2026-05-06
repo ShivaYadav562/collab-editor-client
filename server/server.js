@@ -1,4 +1,4 @@
-
+require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -6,6 +6,7 @@ const cors = require("cors");
 
 const connectDB = require("./config/db");
 const Room = require("./models/Room");
+
 
 connectDB();
 
@@ -130,6 +131,8 @@ socket.on("send_chat", ({ room, message }) => {
   });
 });
 
-server.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = process.env.PORT || 5000;
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
