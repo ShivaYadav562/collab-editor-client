@@ -9,14 +9,14 @@ function ChatBox({ chat, username, msg, setMsg, sendMessage }) {
   }, [chat]);
 
   return (
-    <div className="chat-container">
+      <div className="chat-container glass">
       <h3>Chat</h3>
 
-      <div className="chat-messages">
+     <div className="chat-messages custom-scroll">
         {chat.map((c, i) => (
           <div
             key={i}
-            className={`chat-message ${c.user === username ? "you" : ""}`}
+            className={`chat-message ${c.user === username ? "you-message" : "other-message"}`}
           >
             <strong>
               {c.user === username ? "You" : c.user}
