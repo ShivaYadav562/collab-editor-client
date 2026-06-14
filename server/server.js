@@ -6,6 +6,9 @@ const cors = require("cors");
 
 const connectDB = require("./config/db");
 const Room = require("./models/Room");
+const authRoutes = require("./routes/authRoutes");
+const roomRoutes = require("./routes/roomRoutes");
+
 
 
 connectDB();
@@ -16,6 +19,14 @@ const roomUsers = {};
 
 const app = express();
 app.use(cors());
+app.use(express.json());
+
+app.use("/api/auth", authRoutes);
+app.use("/api/rooms", roomRoutes);
+
+app.get("/test", (req, res) => {
+  res.send("Server Working");
+});
 
 const server = http.createServer(app);
 
