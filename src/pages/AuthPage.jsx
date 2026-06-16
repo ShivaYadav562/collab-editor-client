@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Mail,
-  Lock,
+  //Lock,
   User,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
