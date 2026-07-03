@@ -110,7 +110,7 @@ export default function AuthPage() {
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex-1">
               <h3 className="text-3xl font-bold">
-              ⚡Real-time
+              Real-time
               </h3>
 
               <p className="text-gray-400 mt-2">
@@ -120,7 +120,7 @@ export default function AuthPage() {
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex-1">
               <h3 className="text-3xl font-bold">
-                💬Live Chat
+                Live Chat
               </h3>
 
               <p className="text-gray-400 mt-2">
