@@ -78,22 +78,29 @@ if (roomData) {
 });
 
  //  CODE SYNC
-socket.on("send_message", async (data) => {
-  if (!data?.room || typeof data.message !== "string") return;
+ socket.on("send_message", async (data) => {
+  console.log("========== SEND_MESSAGE ==========");
+  console.log(data);
+
+  if (!data?.room || typeof data.message !== "string") {
+    console.log("Invalid Data");
+    return;
+  }
 
   roomCode[data.room] = data.message;
 
-  //  DB save
   await Room.findOneAndUpdate(
     { roomId: data.room },
     { code: data.message },
     { upsert: true }
   );
 
-   socket.emit("saved");
+  console.log("MongoDB Updated");
 
+  socket.emit("saved");
   socket.to(data.room).emit("receive_message", data.message);
 });
+
   //  LANGUAGE SYNC
   socket.on("language_change", (data) => {
     if (!data?.room) return;

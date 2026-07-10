@@ -36,7 +36,7 @@ function EditorPage() {
 
   //  socket connect
   useEffect(() => {
-  const newSocket = io("https://collab-editor-backend-1-lyl1.onrender.com");
+  const newSocket = io("https://collab-editor-backend-1-fy11.onrender.com");
     setSocket(newSocket);
 
     return () => newSocket.disconnect();
@@ -146,7 +146,7 @@ const createRoom = async () => {
     );
 
       const response =await fetch(
-      "http://localhost:5000/api/rooms/create",
+        "https://collab-editor-backend-1-fy11.onrender.com/api/rooms/create",
       {
         method: "POST",
 
