@@ -102,14 +102,21 @@ if (roomData) {
 });
 
   //  LANGUAGE SYNC
-  socket.on("language_change", (data) => {
-    if (!data?.room) return;
+  
+  socket.on("language_change", async (data) => {
+  if (!data?.room) return;
 
-    roomLanguage[data.room] = data.language;
+  roomLanguage[data.room] = data.language;
 
-    socket.to(data.room).emit("language_change", data.language);
-  });
+  await Room.findOneAndUpdate(
+    { roomId: data.room },
+    { language: data.language }
+  );
 
+  console.log("Language Updated:", data.language);
+
+  socket.to(data.room).emit("language_change", data.language);
+});
 
   //  send chat
 
