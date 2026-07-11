@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Mail,
-  //Lock,
+
   User,
 } from "lucide-react";
 
