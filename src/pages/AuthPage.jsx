@@ -4,7 +4,8 @@ import {
   //Lock,
   User,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,9 +13,44 @@ export default function AuthPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleAuth = async () => {
+     
+     // Required Fields
+if (!isLogin && username.trim().length < 3) {
+  return alert("Username must be at least 3 characters.");
+}
+
+if (!email.trim()) {
+  return alert("Email is required.");
+}
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailRegex.test(email)) {
+  return alert("Please enter a valid email address.");
+}
+
+if (!password) {
+  return alert("Password is required.");
+}
+
+// Strong Password (Signup only)
+if (!isLogin) {
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#])[A-Za-z\d@$!%*?&.#]{8,}$/;
+
+  if (!passwordRegex.test(password)) {
+    return alert(
+      "Password must be at least 8 characters and contain uppercase, lowercase, number and special character."
+    );
+  }
+}
+
   try {
 
   const endpoint = isLogin
@@ -49,10 +85,13 @@ export default function AuthPage() {
     JSON.stringify(data.user)
   );
 
-  navigate("/editor");
+  const redirectTo =
+  sessionStorage.getItem("redirectAfterLogin") || "/editor";
 
-     
-  };
+sessionStorage.removeItem("redirectAfterLogin");
+
+navigate(redirectTo);
+}
 
   } catch (error) {
 

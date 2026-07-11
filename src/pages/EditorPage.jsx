@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
 import debounce from "lodash.debounce";
@@ -21,6 +22,9 @@ import {
 
 
 function EditorPage() {
+
+  const navigate = useNavigate();
+
   const [code, setCode] = useState("");
   const [room, setRoom] = useState("");
   const [joined, setJoined] = useState(false);
@@ -33,6 +37,31 @@ function EditorPage() {
   const [saveStatus, setSaveStatus] = useState("Saved");
 
   const isRemoteChange = useRef(false);
+
+   // Protect Editor Route
+ useEffect(() => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    sessionStorage.setItem(
+      "redirectAfterLogin",
+      window.location.pathname + window.location.search
+    );
+
+    alert("Please login first.");
+
+    navigate("/");
+  }
+}, [navigate]);
+
+// Auto Fill Username
+useEffect(() => {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (user) {
+    setUsername(user.username);
+  }
+}, []);
 
   //  socket connect
   useEffect(() => {
@@ -48,9 +77,19 @@ function EditorPage() {
   const roomId = params.get("room");
 
   if (roomId) {
-    setRoom(roomId);   // 
+    setRoom(roomId);
+
+    // Agar username aur socket ready hain to auto join
+    if (socket && username) {
+      socket.emit("join_room", {
+        room: roomId,
+        username,
+      });
+
+      setJoined(true);
+    }
   }
-}, []);
+}, [socket, username]);
 
 
 
@@ -150,9 +189,10 @@ const createRoom = async () => {
       {
         method: "POST",
 
-        headers: {
+          headers: {
           "Content-Type": "application/json",
-        },
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+       },
 
         body: JSON.stringify({
           roomId: newRoomId,
@@ -177,7 +217,7 @@ const createRoom = async () => {
 };
 
 const copyLink = () => {
-  const link = `${window.location.origin}?room=${room}`;
+  const link = `${window.location.origin}/editor?room=${room}`;
   navigator.clipboard.writeText(link);
   alert("Link copied!");
 };
