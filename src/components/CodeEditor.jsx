@@ -4,11 +4,15 @@ import Editor from "@monaco-editor/react";
 
 import Terminal from "./Terminal";
 
+import { useTheme } from "../context/ThemeContext";
+
 import {
   Play,
   Save,
   Copy,
 } from "lucide-react";
+
+
 
 function CodeEditor({
   code,
@@ -19,6 +23,7 @@ function CodeEditor({
   setSaveStatus,
 }) {
 
+  const { theme } = useTheme();
   
 const [output, setOutput] = useState("");
 
@@ -29,7 +34,7 @@ const [stdin, setStdin] = useState("");
  
 
   // COPY CODE
-  const copyCode = () => {
+ const copyCode = () => {
 
     navigator.clipboard.writeText(code);
 
@@ -100,19 +105,39 @@ setOutput(
   };
 
   return (
-
-    <div className="bg-[#0f172a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl h-full flex flex-col">
+       <div className={`rounded-3xl overflow-hidden shadow-2xl h-full flex flex-col border transition-all duration-300 ${
+        theme === "dark"
+      ? "bg-[#0f172a] border-white/10"
+      : "bg-white border-gray-300"
+  }`}
+>
 
       {/* TOP BAR */}
-      <div className="h-[70px] border-b border-white/10 px-6 flex items-center justify-between">
+       <div className={`h-[70px] border-b px-6 flex items-center justify-between ${
+        theme === "dark"
+        ? "border-white/10"
+        : "border-gray-300"
+  }`}
+>
 
         <div>
 
-          <h2 className="text-white text-xl font-bold">
+          <h2
+              className={`text-xl font-bold ${
+              theme === "dark"
+              ? "text-white"
+              : "text-gray-900"
+          }`}
+>
             Live Code Editor
           </h2>
-
-          <p className="text-gray-400 text-sm">
+             <p
+                className={`text-sm ${
+                theme === "dark"
+                ? "text-gray-400"
+                : "text-gray-600"
+             }`}
+>
             Real-time collaborative coding
           </p>
 
@@ -120,19 +145,28 @@ setOutput(
 
         <div className="flex items-center gap-3">
 
-          <button className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white flex items-center gap-2 hover:bg-white/10 transition">
-            <Save size={18} />
-            Save
-          </button>
-
           <button
-            onClick={copyCode}
-            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white flex items-center gap-2 hover:bg-white/10 transition"
-          >
-            <Copy size={18} />
-            Copy
-          </button>
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 border transition ${
+              theme === "dark"
+              ? "bg-white/5 border-white/10 text-white hover:bg-white/10"
+              : "bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200"
+          }`}
+>
+           <Save size={18} />
+           Save
+      </button>
 
+
+        <button onClick={copyCode}
+        className={`px-4 py-2 rounded-xl flex items-center gap-2 border transition ${
+        theme === "dark"
+        ? "bg-white/5 border-white/10 text-white hover:bg-white/10"
+        : "bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200"
+     }`}
+>
+  <Copy size={18} />
+  Copy
+</button>
           <button
             onClick={runCode}
             disabled={running}
@@ -153,7 +187,7 @@ setOutput(
         <Editor
           height="100%"
           language={language}
-          theme="vs-dark"
+          theme={theme === "dark" ? "vs-dark" : "light"}
           value={code}
           options={{
             minimap: { enabled: false },
@@ -199,11 +233,6 @@ setOutput(
   )}
 
 
-
-
-  
-
-  
       
 
 export default CodeEditor;
