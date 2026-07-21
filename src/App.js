@@ -7,27 +7,29 @@ import {
 import EditorPage from "./pages/EditorPage";
 import AuthPage from "./pages/AuthPage";
 
+import { ThemeProvider } from "./context/ThemeContext";
+
 function App() {
   return (
-    <BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
 
-      <Routes>
+        <Routes>
 
-        <Route
-          path="/"
-          element={<AuthPage />}
-        />
+          <Route
+            path="/"
+            element={<AuthPage />}
+          />
 
-      
+          <Route
+            path="/editor"
+            element={<EditorPage />}
+          />
 
-        <Route
-          path="/editor"
-          element={<EditorPage />}
-        />
+        </Routes>
 
-      </Routes>
-
-    </BrowserRouter>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

@@ -1,11 +1,19 @@
 import React from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+import { useTheme } from "../../context/ThemeContext";
 
 function EditorLayout({ children }) {
+  const { theme } = useTheme();
+
   return (
-    <div className="flex bg-[#020617] min-h-screen">
-      
+    <div
+      className={`flex min-h-screen transition-all duration-300 ${
+        theme === "dark"
+          ? "bg-[#020617]"
+          : "bg-gray-100"
+      }`}
+    >
       <Sidebar />
 
       <div className="flex-1 flex flex-col">
@@ -15,7 +23,6 @@ function EditorLayout({ children }) {
           {children}
         </div>
       </div>
-
     </div>
   );
 }

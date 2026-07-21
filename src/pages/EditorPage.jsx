@@ -11,6 +11,8 @@ import JoinRoom from "../components/JoinRoom";
 
 import EditorLayout from "../components/ui/EditorLayout";
 
+//import { useTheme } from "../context/ThemeContext";
+
 import {
   Panel,
   Group,
@@ -36,7 +38,13 @@ function EditorPage() {
   const [msg, setMsg] = useState("");
   const [saveStatus, setSaveStatus] = useState("Saved");
 
+ //const { theme, setTheme } = useTheme();
+
+
+
   const isRemoteChange = useRef(false);
+
+
 
    // Protect Editor Route
  useEffect(() => {
@@ -53,6 +61,9 @@ function EditorPage() {
     navigate("/");
   }
 }, [navigate]);
+
+ 
+
 
 // Auto Fill Username
 useEffect(() => {
@@ -241,14 +252,14 @@ const copyLink = () => {
 const sendMessage = () => {
   if (!msg.trim()) return;
 
-  const chatData = {
-    user: username,
-    message: msg,
-    time: new Date().toLocaleTimeString(),
-  };
+  // const chatData = {
+  //   user: username,
+  //   message: msg,
+  //   time: new Date().toLocaleTimeString(),
+  // };
 
-  //  LOCAL UI UPDAT
-  setChat((prev) => [...prev, chatData]);
+  // //  LOCAL UI UPDAT
+  // setChat((prev) => [...prev, chatData]);
 
   socket.emit("send_chat", {
     room,
