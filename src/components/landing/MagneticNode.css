@@ -1,0 +1,85 @@
+
+.mag-node-stage {
+  position: relative;
+  width: 100%;
+  height: 650px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #020817;
+}
+
+.mn-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+
+.mn-content {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.mn-badge {
+  padding: 6px 14px;
+  border-radius: 30px;
+  border: 1px solid rgba(0, 190, 255, 0.2);
+  background: rgba(0, 190, 255, 0.08);
+  color: #42cfff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 23px;
+}
+
+.mn-content h1 {
+  color: #ffffff;
+  font-size: clamp(38px, 5vw, 64px);
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -2px;
+}
+
+.mn-content p {
+  max-width: 480px;
+  margin-top: 20px;
+  color: #929eb3;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* Full CTA Section Background */
+.mag-node-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  background: transparent;
+}
+
+@media (max-width: 600px) {
+  .mag-node-stage:not(.mag-node-background) {
+    height: 550px;
+  }
+
+  .mn-content h1 {
+    font-size: 39px;
+    letter-spacing: -1px;
+  }
+
+  .mn-content p {
+    font-size: 12px;
+  }
+}

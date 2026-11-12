@@ -1,27 +1,41 @@
+
 import React from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { useTheme } from "../../context/ThemeContext";
 
-function EditorLayout({ children }) {
+function EditorLayout({ children, workspaceMode = false }) {
   const { theme } = useTheme();
 
   return (
     <div
-      className={`flex min-h-screen transition-all duration-300 ${
-        theme === "dark"
-          ? "bg-[#020617]"
-          : "bg-gray-100"
+      className={`flex w-full overflow-hidden ${
+        workspaceMode
+          ? "fixed inset-0 h-[100dvh]"
+          : "relative min-h-screen"
+      } ${
+        theme === "dark" ? "bg-[#0b0b0b]" : "bg-white"
       }`}
+      style={{ overflowAnchor: "none" }}
     >
-      <Sidebar />
+      {/* Sidebar */}
+      <aside className="h-full shrink-0 overflow-hidden">
+        <Sidebar workspaceMode={workspaceMode} />
+      </aside>
 
-      <div className="flex-1 flex flex-col">
-        <Navbar />
+      {/* Main Content */}
+      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        {/* Navbar */}
+        {!workspaceMode && (
+          <div className="z-10 shrink-0">
+            <Navbar />
+          </div>
+        )}
 
-        <div className="p-6">
+        {/* Page Content */}
+        <main className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Code2,
@@ -15,199 +16,183 @@ import { useTheme } from "../context/ThemeContext";
 
 function TopBar({
   room,
-  users,
+  users = [],
   copyLink,
-  saveStatus,
+  saveStatus = "Saved",
   language,
   handleLanguage,
 }) {
-  const isSaved = saveStatus?.toLowerCase().includes("saved");
-
   const { theme, setTheme } = useTheme();
 
+  const isDark = theme === "dark";
+  const isSaved = saveStatus?.toLowerCase().includes("saved");
+
+  const cardClass = isDark
+    ? "border-slate-700 bg-slate-800 text-white"
+    : "border-gray-300 bg-white text-gray-900";
+
   return (
-    <div
-      className={`w-full border rounded-2xl px-6 py-4 shadow-xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 transition-all duration-300 ${
-        theme === "dark"
-          ? "bg-[#0F172A] border-slate-700"
-          : "bg-white border-gray-300"
+    <header
+      className={`relative z-30 h-[88px] min-h-[88px] max-h-[88px] w-full shrink-0 overflow-hidden border-b px-4 ${
+        isDark
+          ? "border-slate-700 bg-[#0b1222] text-white"
+          : "border-gray-200 bg-white text-gray-900"
       }`}
     >
-      {/* LEFT */}
-      <div className="flex flex-wrap items-center gap-4">
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
-            <Code2 className="text-white" size={24} />
+      {/* Horizontal Scroll Container */}
+      <div className="h-full w-full overflow-x-auto overflow-y-hidden">
+        <div className="flex h-full min-w-max flex-nowrap items-center gap-3">
+
+          {/* Logo */}
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-lg">
+              <Code2 size={24} className="text-white" />
+            </div>
+
+            <div className="leading-tight">
+              <h2 className="whitespace-nowrap text-xl font-bold tracking-tight">
+                Collab<span className="text-blue-500">Editor</span>
+              </h2>
+
+              <p
+                className={`mt-1 whitespace-nowrap text-xs ${
+                  isDark ? "text-slate-400" : "text-gray-500"
+                }`}
+              >
+                Real-Time Collaboration
+              </p>
+            </div>
           </div>
 
-          <div>
-            <h2
-              className={`text-2xl font-bold ${
-                theme === "dark" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Collab
-              <span className="text-blue-500">Editor</span>
-            </h2>
-
-            <p
-              className={`text-xs ${
-                theme === "dark" ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              Real-Time Collaboration
-            </p>
-          </div>
-        </div>
-
-        {/* Room */}
-        <div
-          className={`border rounded-xl px-4 py-3 ${
-            theme === "dark"
-              ? "bg-slate-800 border-slate-700"
-              : "bg-gray-100 border-gray-300"
-          }`}
-        >
-          <p
-            className={`text-[11px] uppercase ${
-              theme === "dark" ? "text-gray-400" : "text-gray-600"
-            }`}
+          {/* Room ID */}
+          <div
+            className={`flex shrink-0 items-center gap-3 rounded-xl border px-3 py-2 ${cardClass}`}
           >
-            Room ID
-          </p>
+            <div>
+              <p
+                className={`text-[10px] uppercase tracking-wider ${
+                  isDark ? "text-slate-400" : "text-gray-500"
+                }`}
+              >
+                Room ID
+              </p>
 
-          <div className="flex items-center gap-3 mt-1">
-            <span
-              className={`font-semibold ${
-                theme === "dark" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              {room.slice(0, 8)}...
-            </span>
+              <p className="mt-1 text-sm font-semibold">
+                {room ? `${room.slice(0, 8)}...` : "No room"}
+              </p>
+            </div>
 
             <button
+              type="button"
               onClick={copyLink}
-              className="text-blue-500 hover:text-blue-600 transition"
+              title="Copy room link"
+              className="shrink-0 text-blue-500 hover:text-blue-400"
             >
               <Link2 size={18} />
             </button>
           </div>
-        </div>
 
-        {/* Users */}
-        <div
-          className={`border rounded-xl px-4 py-3 ${
-            theme === "dark"
-              ? "bg-slate-800 border-slate-700"
-              : "bg-gray-100 border-gray-300"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Users className="text-green-500" size={18} />
+          {/* Online Users */}
+          <div
+            className={`flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 ${cardClass}`}
+          >
+            <Users size={19} className="text-green-500" />
 
-            <span
-              className={`font-medium ${
-                theme === "dark" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              {users.length} Online
+            <div>
+              <p className="whitespace-nowrap text-sm font-semibold">
+                {users.length} Online
+              </p>
+
+              <p
+                className={`max-w-32 truncate text-xs ${
+                  isDark ? "text-slate-400" : "text-gray-500"
+                }`}
+                title={users.map((user) => user.name).join(", ")}
+              >
+                {users.length
+                  ? users.map((user) => user.name).join(", ")
+                  : "No users"}
+              </p>
+            </div>
+          </div>
+
+          {/* Save Status */}
+          <div
+            className={`flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 ${
+              isSaved
+                ? "border-green-700 bg-green-900/20 text-green-400"
+                : "border-yellow-700 bg-yellow-900/20 text-yellow-400"
+            }`}
+          >
+            {isSaved ? (
+              <CheckCircle2 size={18} />
+            ) : (
+              <Loader2 size={18} className="animate-spin" />
+            )}
+
+            <span className="whitespace-nowrap text-sm font-medium">
+              {saveStatus}
             </span>
           </div>
 
-          <p
-            className={`text-xs mt-1 ${
-              theme === "dark" ? "text-gray-400" : "text-gray-600"
-            }`}
+          {/* Connection Status */}
+          <div
+            className={`flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 ${cardClass}`}
           >
-            {users.length
-              ? users.map((u) => u.name).join(", ")
-              : "No users"}
-          </p>
-        </div>
+            <Wifi size={18} className="text-green-500" />
 
-        {/* Save Status */}
-        <div
-          className={`flex items-center gap-2 rounded-xl px-4 py-3 border ${
-            isSaved
-              ? "bg-green-900/30 border-green-700 text-green-400"
-              : "bg-yellow-900/30 border-yellow-700 text-yellow-400"
-          }`}
-        >
-          {isSaved ? (
-            <CheckCircle2 size={18} />
-          ) : (
-            <Loader2 size={18} className="animate-spin" />
-          )}
+            <span className="whitespace-nowrap text-sm font-medium text-green-500">
+              Connected
+            </span>
+          </div>
 
-          <span className="font-medium">{saveStatus}</span>
-        </div>
+          {/* Right Controls */}
+          <div className="ml-auto flex shrink-0 items-center gap-2">
 
-        {/* Connection */}
-        <div
-          className={`flex items-center gap-2 border rounded-xl px-4 py-3 ${
-            theme === "dark"
-              ? "bg-slate-800 border-slate-700"
-              : "bg-gray-100 border-gray-300"
-          }`}
-        >
-          <Wifi size={18} className="text-green-500" />
+            {/* Language Selector */}
+            <select
+              value={language}
+              onChange={handleLanguage}
+              aria-label="Programming language"
+              className={`h-9 w-32 shrink-0 rounded-lg border px-2.5 text-sm outline-none focus:border-blue-500 ${cardClass}`}
+            >
+              <option value="javascript">JavaScript</option>
+              <option value="java">Java</option>
+              <option value="cpp">C++</option>
+              <option value="python">Python</option>
+              <option value="c">C</option>
+            </select>
 
-          <span className="text-green-500 font-medium">
-            Connected
-          </span>
+            {/* Theme Toggle */}
+            <button
+              type="button"
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              className={`flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition hover:border-blue-500 ${cardClass}`}
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+
+              <span>{isDark ? "Light" : "Dark"}</span>
+            </button>
+
+            {/* Leave */}
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm("Leave this room?")) {
+                  window.location.href = "/dashboard";
+                }
+              }}
+              className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-red-600 px-3 text-sm font-semibold text-white transition hover:bg-red-700"
+            >
+              <LogOut size={16} />
+              Leave
+            </button>
+
+          </div>
         </div>
       </div>
-
-      {/* RIGHT */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <select
-          value={language}
-          onChange={handleLanguage}
-          className={`rounded-xl px-5 py-3 outline-none border transition ${
-            theme === "dark"
-              ? "bg-slate-800 border-slate-700 text-white hover:border-blue-500"
-              : "bg-white border-gray-300 text-gray-900 hover:border-blue-500"
-          }`}
-        >
-          <option value="javascript">JavaScript</option>
-          <option value="java">Java</option>
-          <option value="cpp">C++</option>
-          <option value="python">Python</option>
-          <option value="c">C</option>
-        </select>
-
-        {/* Theme Toggle */}
-        <button
-          onClick={() =>
-            setTheme(theme === "dark" ? "light" : "dark")
-          }
-          className={`flex items-center gap-2 px-5 py-3 rounded-xl border transition ${
-            theme === "dark"
-              ? "bg-slate-800 border-slate-700 text-white hover:border-blue-500"
-              : "bg-white border-gray-300 text-gray-900 hover:border-blue-500"
-          }`}
-        >
-          {theme === "dark" ? (
-            <>
-              <Sun size={18} />
-              Light
-            </>
-          ) : (
-            <>
-              <Moon size={18} />
-              Dark
-            </>
-          )}
-        </button>
-
-        {/* Leave */}
-        <button className="flex items-center gap-2 px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white transition">
-          <LogOut size={18} />
-          Leave
-        </button>
-      </div>
-    </div>
+    </header>
   );
 }
 

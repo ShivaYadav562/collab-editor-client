@@ -1,17 +1,14 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
-
 import debounce from "lodash.debounce";
 import { v4 as uuidv4 } from "uuid";
+
 import TopBar from "../components/TopBar";
 import ChatBox from "../components/ChatBox";
 import CodeEditor from "../components/CodeEditor";
 import JoinRoom from "../components/JoinRoom";
-
 import EditorLayout from "../components/ui/EditorLayout";
-
-//import { useTheme } from "../context/ThemeContext";
 
 import {
   Panel,
@@ -19,12 +16,7 @@ import {
   Separator,
 } from "react-resizable-panels";
 
-
-
-
-
 function EditorPage() {
-
   const navigate = useNavigate();
 
   const [code, setCode] = useState("");
@@ -38,60 +30,57 @@ function EditorPage() {
   const [msg, setMsg] = useState("");
   const [saveStatus, setSaveStatus] = useState("Saved");
 
- //const { theme,  } = useTheme();
-
-
-
   const isRemoteChange = useRef(false);
 
-
-
-   // Protect Editor Route
- useEffect(() => {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    sessionStorage.setItem(
-      "redirectAfterLogin",
-      window.location.pathname + window.location.search
-    );
-
-    alert("Please login first.");
-
-    navigate("/");
-  }
-}, [navigate]);
-
- 
-
-
-// Auto Fill Username
-useEffect(() => {
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  if (user) {
-    setUsername(user.username);
-  }
-}, []);
-
-  //  socket connect
+  // Protect editor route
   useEffect(() => {
-  const newSocket = io("https://collab-editor-backend-1-fy11.onrender.com");
-    setSocket(newSocket);
+    const token = localStorage.getItem("token");
 
-    return () => newSocket.disconnect();
+    if (!token) {
+      sessionStorage.setItem(
+        "redirectAfterLogin",
+        window.location.pathname + window.location.search
+      );
+
+      alert("Please login first.");
+      navigate("/");
+    }
+  }, [navigate]);
+
+  // Load username
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      if (user?.username) {
+        setUsername(user.username);
+      }
+    } catch (error) {
+      console.error("Unable to read user information:", error);
+    }
   }, []);
 
-
+  // Connect Socket.IO
   useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const roomId = params.get("room");
+    const newSocket = io(
+      "https://collab-editor-backend-1-fy11.onrender.com"
+    );
 
-  if (roomId) {
-    setRoom(roomId);
+    setSocket(newSocket);
 
-    // Agar username aur socket ready hain to auto join
-    if (socket && username) {
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
+  // Auto-join room from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const roomId = params.get("room");
+
+    if (roomId && socket && username) {
+      setRoom(roomId);
+
       socket.emit("join_room", {
         room: roomId,
         username,
@@ -99,325 +88,290 @@ useEffect(() => {
 
       setJoined(true);
     }
-  }
-}, [socket, username]);
+  }, [socket, username]);
 
+  // Synchronize code
+  const sendCode = useMemo(
+    () =>
+      debounce((newCode) => {
+        if (!socket) return;
 
-
-
-
-  //  debounce send
-  const sendCode = useMemo(() => {
-    return debounce((newCode) => {
-      if (!socket) return;
-
-      socket.emit("send_message", {
-        room,
-        message: newCode,
-      });
-    }, 200);
-  }, [socket, room]);
+        socket.emit("send_message", {
+          room,
+          message: newCode,
+        });
+      }, 200),
+    [socket, room]
+  );
 
   useEffect(() => {
     return () => sendCode.cancel();
   }, [sendCode]);
 
-  //  receive code
+  // Receive synchronized code
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("receive_message", (newCode) => {
+    const handleReceiveMessage = (newCode) => {
       isRemoteChange.current = true;
       setCode(newCode);
-    });
+    };
 
-    return () => socket.off("receive_message");
+    socket.on("receive_message", handleReceiveMessage);
+
+    return () => {
+      socket.off("receive_message", handleReceiveMessage);
+    };
   }, [socket]);
 
-  //  language sync
+  // Synchronize programming language
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("language_change", (lang) => {
-      setLanguage(lang);
-    });
+    const handleLanguageChange = (lang) => {
+      setLanguage(
+        typeof lang === "string"
+          ? lang
+          : lang?.language || "javascript"
+      );
+    };
 
-    return () => socket.off("language_change");
+    socket.on("language_change", handleLanguageChange);
+
+    return () => {
+      socket.off("language_change", handleLanguageChange);
+    };
   }, [socket]);
 
-  //  users update
-
+  // Online users
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("users_update", (usersList) => {
-      setUsers(usersList);
-    });
+    const handleUsersUpdate = (usersList) => {
+      setUsers(Array.isArray(usersList) ? usersList : []);
+    };
 
-    return () => socket.off("users_update");
+    socket.on("users_update", handleUsersUpdate);
+
+    return () => {
+      socket.off("users_update", handleUsersUpdate);
+    };
   }, [socket]);
 
-
+  // Receive chat messages
   useEffect(() => {
-  if (!socket) return;
+    if (!socket) return;
 
-  socket.on("receive_chat", (data) => {
-     console.log("CHAT:", data); 
-    setChat((prev) => [...prev, data]);
-  });
+    const handleReceiveChat = (data) => {
+      setChat((previous) => [...previous, data]);
+    };
 
-  return () => socket.off("receive_chat");
-}, [socket]);
+    socket.on("receive_chat", handleReceiveChat);
 
+    return () => {
+      socket.off("receive_chat", handleReceiveChat);
+    };
+  }, [socket]);
 
-useEffect(() => {
-  if (!socket) return;
+  // Save status
+  useEffect(() => {
+    if (!socket) return;
 
-  socket.on("saved", () => {
-    setSaveStatus("Saved");
-  });
+    const handleSaved = () => {
+      setSaveStatus("Saved");
+    };
 
-  return () => socket.off("saved");
-}, [socket]);
+    socket.on("saved", handleSaved);
 
-  //  create room
-const createRoom = async () => {
-    console.log("CREATE ROOM CLICKED");
-  if (room) return;
+    return () => {
+      socket.off("saved", handleSaved);
+    };
+  }, [socket]);
 
-  const newRoomId = uuidv4();
+  // Create room
+  const createRoom = async () => {
+    if (room) return;
 
-  setRoom(newRoomId);
+    const newRoomId = uuidv4();
+    setRoom(newRoomId);
 
-  try {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
 
-    const user = JSON.parse(
-      localStorage.getItem("user")
-    );
-
-      const response =await fetch(
+      const response = await fetch(
         "https://collab-editor-backend-1-fy11.onrender.com/api/rooms/create",
-      {
-        method: "POST",
-
+        {
+          method: "POST",
           headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-       },
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            roomId: newRoomId,
+            roomName: "Untitled Room",
+            owner: user?.id,
+          }),
+        }
+      );
 
-        body: JSON.stringify({
-          roomId: newRoomId,
-          roomName: "Untitled Room",
-          owner: user?.id,
-        }),
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Room creation failed:", data);
       }
-    );
+    } catch (error) {
+      console.error("Unable to create room:", error);
+    }
+  };
 
-    console.log("STATUS:", response.status);
+  // Copy room link
+  const copyLink = async () => {
+    const link = `${window.location.origin}/editor?room=${room}`;
 
-     const data = await response.json();
+    try {
+      await navigator.clipboard.writeText(link);
+      alert("Link copied!");
+    } catch (error) {
+      console.error("Unable to copy room link:", error);
+      alert("Could not copy link. Copy it from the browser address bar.");
+    }
+  };
 
-    console.log("DATA:", data);
-
-    console.log("Room saved");
-
-  } catch (error) {
-
-    console.log(error);
-  }
-};
-
-const copyLink = () => {
-  const link = `${window.location.origin}/editor?room=${room}`;
-  navigator.clipboard.writeText(link);
-  alert("Link copied!");
-};
-
- // join room
+  // Join room
   const joinRoom = () => {
     if (!room || !username || !socket) {
       alert("Enter username and room ID");
       return;
     }
-    console.log("Joining Room:", room);
+
     socket.emit("join_room", {
       room,
       username,
     });
-  window.history.pushState({}, "", `?room=${room}`);
 
+    window.history.pushState({}, "", `?room=${room}`);
     setJoined(true);
   };
 
-const sendMessage = () => {
-  if (!msg.trim()) return;
+  // Send chat message
+  const sendMessage = () => {
+    if (!msg.trim() || !socket) return;
 
-  // const chatData = {
-  //   user: username,
-  //   message: msg,
-  //   time: new Date().toLocaleTimeString(),
-  // };
+    socket.emit("send_chat", {
+      room,
+      message: msg.trim(),
+    });
 
-  // //  LOCAL UI UPDAT
-  // setChat((prev) => [...prev, chatData]);
+    setMsg("");
+  };
 
-  socket.emit("send_chat", {
-    room,
-    message: msg,
-  });
-
-  setMsg("");
-};
-
+  // Starter templates
   const templates = {
-
-  javascript:
-`console.log("Hello World");`,
-
-  python:
-`print("Hello World")`,
-
-  java:
-`class Main {
-
+    javascript: 'console.log("Hello World");',
+    python: 'print("Hello World")',
+    java: `class Main {
     public static void main(String[] args) {
-
+        System.out.println("Hello World");
     }
 }`,
-
-  cpp:
-`#include <iostream>
+    cpp: `#include <iostream>
 using namespace std;
 
 int main() {
-
     cout << "Hello World";
-
     return 0;
 }`,
-
-  c:
-`#include <stdio.h>
+    c: `#include <stdio.h>
 
 int main() {
-
     printf("Hello World");
-
     return 0;
 }`,
-};
-
-  //  change language
-  const handleLanguage = (e) => {
-    const lang = e.target.value;
-
-    setLanguage(lang);
-
-     // TEMPLATE SET
-  setCode(
-    templates[lang]
-  );
-
-    socket.emit("language_change", {
-      room,
-      language: lang,
-    });
   };
 
- return (
-  <EditorLayout>
+  // Change language
+  const handleLanguage = (event) => {
+    const lang = event.target.value;
 
-    <div className="container">
+    setLanguage(lang);
+    setCode(templates[lang] || "");
 
+    if (socket) {
+      socket.emit("language_change", {
+        room,
+        language: lang,
+      });
+    }
+  };
+
+  return (
+    <EditorLayout workspaceMode={joined}>
       {!joined ? (
-
-        <JoinRoom
-          username={username}
-          setUsername={setUsername}
-          room={room}
-          setRoom={setRoom}
-          joinRoom={joinRoom}
-          createRoom={createRoom}
-        />
-
-      ) : (
-
-        <>
-
-          <TopBar
+        // Keep the existing Join Room screen unchanged.
+        <div className="h-full w-full overflow-y-auto">
+          <JoinRoom
+            username={username}
+            setUsername={setUsername}
             room={room}
-            users={users}
-            copyLink={copyLink}
-            saveStatus={saveStatus}
-            language={language}
-            handleLanguage={handleLanguage}
+            setRoom={setRoom}
+            joinRoom={joinRoom}
+            createRoom={createRoom}
           />
-
-          <Group
-            direction="horizontal"
-            className="main"
-          >
-
-            {/* EDITOR PANEL */}
-            <Panel
-              defaultSize={78}
-              minSize={45}
-            >
-
-              <div className="editor-section">
-
-                <CodeEditor
-                  code={code}
-                  language={language}
-                  setCode={setCode}
-                  sendCode={sendCode}
-                  isRemoteChange={isRemoteChange}
-                  setSaveStatus={setSaveStatus}
-                />
-
-              </div>
-
-            </Panel>
-
-            {/* RESIZE HANDLE */}
-             <Separator
-              style={{
-                width: "6px",
-                background: "rgba(255,255,255,0.08)",
-                cursor: "col-resize",
-                borderRadius: "20px",
-              }}
+        </div>
+      ) : (
+        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#08090d] text-white">
+          {/* Compact top header */}
+          <div className="z-20 shrink-0">
+            <TopBar
+              room={room}
+              users={users}
+              copyLink={copyLink}
+              saveStatus={saveStatus}
+              language={language}
+              handleLanguage={handleLanguage}
             />
+          </div>
 
-            {/* CHAT PANEL */}
-            <Panel
-              defaultSize={22}
-              minSize={18}
+          {/* Main workspace: Editor + Chat */}
+          <main className="min-h-0 flex-1 overflow-hidden">
+            <Group
+              direction="horizontal"
+              className="flex h-full min-h-0 w-full overflow-hidden"
             >
+              {/* Code Editor: 78% */}
+              <Panel defaultSize={78} minSize={60}>
+                <div className="h-full min-h-0 min-w-0 overflow-hidden">
+                  <CodeEditor
+                    code={code}
+                    language={language}
+                    setCode={setCode}
+                    sendCode={sendCode}
+                    isRemoteChange={isRemoteChange}
+                    setSaveStatus={setSaveStatus}
+                  />
+                </div>
+              </Panel>
 
-              <div className="chat-section">
+              <Separator className="w-1 shrink-0 cursor-col-resize bg-white/10 transition-colors hover:bg-blue-500" />
 
-                <ChatBox
-                  chat={chat}
-                  username={username}
-                  msg={msg}
-                  setMsg={setMsg}
-                  sendMessage={sendMessage}
-                />
-
-              </div>
-
-            </Panel>
-
-          </Group>
-
-        </>
-
+              {/* Team Chat: 22% */}
+              <Panel defaultSize={22} minSize={18}>
+                <div className="h-full min-h-0 min-w-0 overflow-hidden">
+                  <ChatBox
+                    chat={chat}
+                    username={username}
+                    msg={msg}
+                    setMsg={setMsg}
+                    sendMessage={sendMessage}
+                  />
+                </div>
+              </Panel>
+            </Group>
+          </main>
+        </div>
       )}
-
-    </div>
-
-  </EditorLayout>
-);
+    </EditorLayout>
+  );
 }
+
 export default EditorPage;
